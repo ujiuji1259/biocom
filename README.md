@@ -19,7 +19,7 @@ Please follow the instruction [here](https://github.com/facebookresearch/faiss) 
 Dataset used in our paper can be downloaded [here](http://aoi.naist.jp/biocom/) (NCBI disease corpus, BC5CDR, MedMentions).
 Please place these file into ./dataset folder to evaluate our model.
 
-Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out in the dataset.
+Note that mentions whose concept is not in `MeSH` or `OMIM` are filtered out in the dataset.
 
 ### Corpus
 The corpus, a set of entity-linked sentences, is too large to distribute, so please construct the corpus on your own.
