@@ -2,6 +2,15 @@
 We present BioCoM, a contrastive learning framework for context-aware medical entity normalization. 
 You can train the model by the following procedure: 1) construct the corpus (./corpus) 2) run traininig.
 
+## Resource
+### Dataset
+You can download the [three dataset](aoi.naist.jp/biocom) used in our experiments (NCBI disease corpus, BC5CDR, MedMentions).
+These datasets is `.jsonl` format.
+Please place these file into ./dataset folder.
+
+Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out in the dataset.
+
+
 ## Training
 
 ```python
