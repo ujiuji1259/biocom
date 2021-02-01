@@ -13,7 +13,7 @@ Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out i
 
 ## Training
 
-```python
+```
 python train.py \
   --concept_map corpus/concept_map.jsonl \
   --input_dir (corpus directory that are built. Please see ./corpus/README.md) \
@@ -25,7 +25,7 @@ python train.py \
 
 ## Precompute the embeddings
 You have to compute and save the embeddings of all the entity representations in the corpus.
-```python
+```
 python precompute_embeddings.py \
   --dictionary_path corpus/disease_down_half.tsv \
   --concept_map corpus/concept_map.jsonl \
@@ -34,7 +34,7 @@ python precompute_embeddings.py \
 ```
 
 ## Evaluation
-```python
+```
 python evaluate.py \
   --concept_map corpus/concept_map.jsonl \
   --embedding_dir (directory of entity representations saved above) \
