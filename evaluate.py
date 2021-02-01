@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import pdb
@@ -19,6 +20,21 @@ from torchsummary import summary
 
 from data import EntityDataset, load_concept_vocab, my_collate_fn, SentTrainDataset, SentDataset, my_collate_fn_for_sent, SentEntityDataset, SampleSentDataset
 from model import EntityBERT, load_bert, FaissIndexer, filter_pairs
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Precompute the embeddings')
+
+    parser.add_argument('--concept_map', required=True, help='File path of concept mapping')
+    parser.add_argument('--embedding_dir', required=True, help='Input directory path')
+    parser.add_argument('--dataset_dir', required=True, help='dataset directory path')
+    parser.add_argument('--output_dir', required=True, help='output directory')
+    parser.add_argument('--model_path', required=True, help='model save path')
+    parser.add_argument('--shard_bsz', type=int, help='shard batch size')
+
+    args = parser.parse_args()
+
+    return args
 
 
 def knn(preds, k):
@@ -51,10 +67,10 @@ def update_knn(prev_scores, prev_tags, cur_scores, cur_tags, k):
     return total_tags, total_scores
 
 
-def evaluate_from_file(model, base_dir, datasets, ks = [15], only=False, dev=False):
+def evaluate_from_file(model, base_dir, datasets, ks = [15], only=False, dev=False, bsz=5):
     accuracy = {}
     with torch.no_grad():
-        train_datasets = load_all_embed(base_dir, bsz=5)
+        train_datasets = load_all_embed(base_dir, bsz=bsz)
         results = {}
         test_datasets = {}
         for key in datasets.keys():
@@ -175,12 +191,13 @@ def load_all_embed(base_dir, bsz=1):
 
 
 if __name__ == "__main__":
+    args = parse_args()
     tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     tokenizer.add_special_tokens({'additional_special_tokens': ['[ENT]', '[/ENT]']})
     bert = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     model = EntityBERT(bert).to(device)
 
-    with open("dataset/concept_map.json", 'r') as f:
+    with open(args.concept_map, 'r') as f:
         concept_map = json.load(f)
     itoc = list(concept_map.keys())
     ctoi = {c:i for i, c in enumerate(itoc)}
@@ -190,18 +207,17 @@ if __name__ == "__main__":
         base_valid_tags.add(k)
         [base_valid_tags.add(vv) for vv in v]
 
-    with open('dataset/disease_down_half.tsv', 'r') as f:
-        disease_list = [json.loads(l)[0] for l in f.read().split('\n') if l != '']
+    train_dataset = SentDataset(args.input_dir, tokenizer, from_jsonl=True, concept_map=concept_map)
 
-    train_dataset = SampleSentDataset('/data1/ujiie/pubmed/pubmed_CTD_wo_stopwords', tokenizer, from_jsonl=True, concept_map=concept_map, disease_list=disease_list)
-
+    dataset_dir = Path(args.dataset_dir)
+    output_dir  = Path(args.output_dir)
     datasets = {
-            "ncbi": ["dataset/dev_NCBID.jsonl", "dataset/test_NCBID.jsonl", "pred_NCBID.json", 4],
-            "bc5cdr": ["dataset/dev_BC5CDR.jsonl", "dataset/test_BC5CDR.jsonl", "pred_BC5CDR.json", 0],
-            "medmentions": ["dataset/dev_medmentions.jsonl", "dataset/test_medmentions.jsonl", "pred_medmentions.json", 1]
+            "ncbi": [dataset_dir / "dev_NCBID.jsonl", datset_dir / "test_NCBID.jsonl", output_dir / "pred_NCBID.json", 4],
+            "bc5cdr": [output_dir / "dev_BC5CDR.jsonl", output_dir / "test_BC5CDR.jsonl", output_dir / "pred_BC5CDR.json", 0],
+            "medmentions": [output_dir / "dev_medmentions.jsonl", output_dir / "test_medmentions.jsonl", output_dir / "pred_medmentions.json", 1]
             }
 
-    model.load_state_dict(torch.load("sent_50_down_half_ent.model"))
-    accuracy = evaluate_from_file(model, '/data1/ujiie/simBERT/down_half_ent', datasets, only=False, dev=False)
+    model.load_state_dict(torch.load(args.model_path))
+    accuracy = evaluate_from_file(model, args.embedding_dir, datasets, only=False, dev=False, bsz=args.shard_bsz)
     print(accuracy)
 
