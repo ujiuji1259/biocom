@@ -67,17 +67,14 @@ def update_knn(prev_scores, prev_tags, cur_scores, cur_tags, k):
     return total_tags, total_scores
 
 
-def evaluate_from_file(model, base_dir, datasets, ks = [15], only=False, dev=False, bsz=5):
+def evaluate_from_file(model, base_dir, datasets, ks = [15], only=False, bsz=5):
     accuracy = {}
     with torch.no_grad():
         train_datasets = load_all_embed(base_dir, bsz=bsz)
         results = {}
         test_datasets = {}
         for key in datasets.keys():
-            if dev:
-                test_dataset = SentTrainDataset(datasets[key][0], tokenizer, only=only, concept_set=base_valid_tags)
-            else:
-                test_dataset = SentTrainDataset(datasets[key][1], tokenizer, only=only, concept_set=base_valid_tags)
+            test_dataset = SentTrainDataset(datasets[key][0], tokenizer, only=only, concept_set=base_valid_tags)
             test_embeds, test_tags = get_all_embed(model, test_dataset)
             test_embeds = normalize(torch.tensor(test_embeds, requires_grad=False), p=2, dim=-1)
             test_datasets[key] = datasets[key] + [test_embeds, test_tags]
@@ -212,12 +209,12 @@ if __name__ == "__main__":
     dataset_dir = Path(args.dataset_dir)
     output_dir  = Path(args.output_dir)
     datasets = {
-            "ncbi": [dataset_dir / "dev_NCBID.jsonl", datset_dir / "test_NCBID.jsonl", output_dir / "pred_NCBID.json", 4],
-            "bc5cdr": [output_dir / "dev_BC5CDR.jsonl", output_dir / "test_BC5CDR.jsonl", output_dir / "pred_BC5CDR.json", 0],
-            "medmentions": [output_dir / "dev_medmentions.jsonl", output_dir / "test_medmentions.jsonl", output_dir / "pred_medmentions.json", 1]
+            "ncbi": [datset_dir / "test_NCBID.jsonl", output_dir / "pred_NCBID.json", 4],
+            "bc5cdr": [output_dir / "test_BC5CDR.jsonl", output_dir / "pred_BC5CDR.json", 0],
+            "medmentions": [output_dir / "test_medmentions.jsonl", output_dir / "pred_medmentions.json", 1]
             }
 
     model.load_state_dict(torch.load(args.model_path))
-    accuracy = evaluate_from_file(model, args.embedding_dir, datasets, only=False, dev=False, bsz=args.shard_bsz)
+    accuracy = evaluate_from_file(model, args.embedding_dir, datasets, only=False, bsz=args.shard_bsz)
     print(accuracy)
 
