@@ -30,7 +30,7 @@ This was obtained by randomly sampling half of the synonyms for each concept.
 
 ## Training
 The following example trains our model.
-Please construct the corpus before training (see ./corpus/README.md).
+Please construct the corpus before training (see `./corpus/README.md`).
 ```
 MODEL=./biocom.model
 INPUT_DIR=./corpus/pubmed_down_half
