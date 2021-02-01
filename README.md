@@ -4,7 +4,7 @@ You can train the model by the following procedure: 1) construct the corpus (./c
 
 ## Resource
 ### Dataset
-You can download the [three dataset](aoi.naist.jp/biocom) used in our experiments (NCBI disease corpus, BC5CDR, MedMentions).
+You can download the [three dataset](http://aoi.naist.jp/biocom/) used in our experiments (NCBI disease corpus, BC5CDR, MedMentions).
 These datasets is `.jsonl` format.
 Please place these file into ./dataset folder.
 
