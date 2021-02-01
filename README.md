@@ -41,8 +41,8 @@ python train.py \
 ```
 
 
-## Precompute the embeddings
-You can compute and save the embeddings of all the entity representations in the corpus by following example.
+## Precomputing the embeddings
+Compute and save the embeddings of all the entity representations in the corpus by following example.
 ```
 MODEL=./biocom.model
 INPUT_DIR=./corpus/pubmed_down_half
