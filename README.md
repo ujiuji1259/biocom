@@ -22,7 +22,7 @@ Note that the format of each dataset is different from the original data, and me
 
 ### Corpus
 The corpus, a set of entity-linked sentences, is too large to distribute, so please construct the corpus on your own.
-Please see ./corpus/README.md and save the corpus in any directory.
+Please see `./corpus/README.md` and save the corpus in any directory.
 
 
 ## Training
