@@ -65,7 +65,7 @@ If you want to use trained model, you can download [trained model](http://aoi.na
 
 Specifically, `shard_bsz` means that we use the specified number of `.npy` file for normalization at the same time.
 We iteratively retrieve the nearest neighbors and update them.
-If you don't have enough memory space, you can set it to small number (e.g., 5)
+If you don't have enough memory space, you can set it to smaller number (e.g., 5)
 ```
 MODEL=./biocom.model
 EMBEDDING_DIR=./corpus/precomputed_embeddings
