@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import pdb
@@ -22,6 +23,20 @@ from model import EntityBERT, load_bert, FaissIndexer, filter_pairs
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Precompute the embeddings')
+
+    parser.add_argument('--concept_map', required=True, help='File path of concept mapping')
+    parser.add_argument('--input_dir', required=True, help='Input directory path')
+    parser.add_argument('--learning_rate', type=int, help='learning rate')
+    parser.add_argument('--batch_size', type=int, help='batch size')
+    parser.add_argument('--model_path', type=int, help='model save path')
+
+    args = parser.parse_args()
+
+    return args
 
 
 def train(model, dataset, batch_size, ctoi, lr):
@@ -59,12 +74,13 @@ def train(model, dataset, batch_size, ctoi, lr):
 
 
 if __name__ == '__main__':
+    args = parse_args()
     tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     tokenizer.add_special_tokens({'additional_special_tokens': ['[ENT]', '[/ENT]']})
     bert = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     model = EntityBERT(bert).to(device)
 
-    with open("dataset/concept_map.json", 'r') as f:
+    with open(args.concept_map, 'r') as f:
         concept_map = json.load(f)
     itoc = list(concept_map.keys())
     ctoi = {c:i for i, c in enumerate(itoc)}
@@ -74,19 +90,9 @@ if __name__ == '__main__':
         base_valid_tags.add(k)
         [base_valid_tags.add(vv) for vv in v]
 
-    with open('dataset/disease_down_half.tsv', 'r') as f:
-        disease_list = [json.loads(l)[0] for l in f.read().split('\n') if l != '']
-
-    train_dataset = SampleSentDataset('/data1/ujiie/pubmed/pubmed_CTD_wo_stopwords', tokenizer, from_jsonl=True, concept_map=concept_map, disease_list=disease_list)
-
-    datasets = {
-            "ncbi": ["dataset/dev_NCBID.jsonl", "dataset/test_NCBID.jsonl", "pred_NCBID.json", 4],
-            "bc5cdr": ["dataset/dev_BC5CDR.jsonl", "dataset/test_BC5CDR.jsonl", "pred_BC5CDR.json", 0],
-            "medmentions": ["dataset/dev_medmentions.jsonl", "dataset/test_medmentions.jsonl", "pred_medmentions.json", 1]
-            }
+    train_dataset = SentDataset(args.input_dir, tokenizer, from_jsonl=True, concept_map=concept_map)
 
     train_dataset.__sample__(minimum=50, only=False)
-    loss_ = train(model, train_dataset, 16, ctoi, 1e-5)
-
-
+    loss_ = train(model, train_dataset, args.batch_size, ctoi, args.learning_rate)
+    torch.save(model.state_dict(), args.model_path)
 

@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import pdb
@@ -19,6 +20,19 @@ from torchsummary import summary
 
 from data import EntityDataset, load_concept_vocab, my_collate_fn, SentTrainDataset, SentDataset, my_collate_fn_for_sent, SentEntityDataset, SampleSentDataset
 from model import EntityBERT, load_bert, FaissIndexer, filter_pairs
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Precompute the embeddings')
+
+    parser.add_argument('--dictionary_path', required=True, help='Dictionary path')
+    parser.add_argument('--concept_map', required=True, help='File path of concept mapping')
+    parser.add_argument('--input_dir', required=True, help='Input directory path')
+    parser.add_argument('--output_dir', required=True, help='Output directory. Note that this directory needs at least 35G memory space')
+
+    args = parser.parse_args()
+
+    return args
 
 
 def get_all_embed(model, dataset):
@@ -98,18 +112,19 @@ def save_all_embed(model, dataset, base_dir):
 
 
 if __name__ == "__main__":
+    args = parse_args()
     tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     tokenizer.add_special_tokens({'additional_special_tokens': ['[ENT]', '[/ENT]']})
     bert = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     model = EntityBERT(bert).to(device)
 
-    with open("dataset/concept_map.json", 'r') as f:
+    with open(args.concept_map, 'r') as f:
         concept_map = json.load(f)
 
-    with open('dataset/disease_down_half.tsv', 'r') as f:
+    with open(args.dictioanry_path, 'r') as f:
         disease_list = [json.loads(l)[0] for l in f.read().split('\n') if l != '']
 
-    train_dataset = SampleSentDataset('/data1/ujiie/pubmed/pubmed_CTD_wo_stopwords', tokenizer, from_jsonl=True, concept_map=concept_map, disease_list=disease_list)
+    train_dataset = SampleSentDataset(args.input_dir, tokenizer, from_jsonl=True, concept_map=concept_map, disease_list=disease_list)
     ite_data = train_dataset.__sample_all__(only=False)
-    save_all_embed(model, ite_data, output_path)
+    save_all_embed(model, ite_data, args.output_dir)
 

@@ -80,15 +80,13 @@ class SentTrainDataset(object):
         return len(self.data)
 
 
-class SampleSentDataset(Dataset):
-    def __init__(self, fn, tokenizer, from_jsonl=False, concept_map=None, disease_list=[], is_train=True):
-        self.disease_list = set(disease_list)
+class SentDataset(Dataset):
+    def __init__(self, fn, tokenizer, from_jsonl=False, concept_map=None):
         self.tokenizer = tokenizer
         self.base_dir = Path(fn)
         self.files = list(self.base_dir.glob("*.jsonl"))
         self.__load_summary__()
         self.concept_map = concept_map
-        self.is_train = is_train
 
     def __preprocess__(self, sent):
         ent_idxs, wpcs, tags = [], ['[CLS]'], []
@@ -105,18 +103,15 @@ class SampleSentDataset(Dataset):
                 wpcs.append('[/ENT]')
                 ent_cnt += 1
             if ent_cnt < len(ents) and idx == ents[ent_cnt]['span'][0]:
-                if ents[ent_cnt]['string'] in self.disease_list:
-                    ent_idxs.append(len(wpcs))
-                    wpcs.append('[ENT]')
-                    if self.concept_map is not None:
-                        tags.append(self.concept_map[ents[ent_cnt]['descriptor']])
-                    else:
-                        tags.append(ents[ent_cnt]['descriptor'])
+                ent_idxs.append(len(wpcs))
+                wpcs.append('[ENT]')
+                if self.concept_map is not None:
+                    tags.append(self.concept_map[ents[ent_cnt]['descriptor']])
                 else:
-                    ent_cnt += 1
+                    tags.append(ents[ent_cnt]['descriptor'])
             wpcs.append(word)
 
-        if ent_cnt < len(ents) and idx == ents[ent_cnt]['span'][1]:
+        if ent_cnt < len(ents) and idx + 1 == ents[ent_cnt]['span'][1]:
             wpcs.append('[/ENT]')
 
         wpcs.append('[SEP]')
@@ -142,7 +137,7 @@ class SampleSentDataset(Dataset):
                         line = json.loads(line)
                         entities = line['entities']
                         for entity in entities:
-                            if entity['descriptor'][0] == code and entity['string'] in self.disease_list:
+                            if entity['descriptor'][0] == code:
                                 self.code2sent[code][entity['string']].append(idx)
 
                 code_file = summary / fn.name
@@ -156,14 +151,10 @@ class SampleSentDataset(Dataset):
                     l = json.load(f)
                     self.code2sent[str(code)] = l
 
-                diseases = list(self.code2sent[str(code)].keys())
-                for d in diseases:
-                    if d not in self.disease_list:
-                        self.code2sent[str(code)].pop(d)
-
 
     def __load__(self, path, N, minimum, fast, only, load_all=False):
         sents = []
+        #idxs = set()
         idxs = {}
         code = str(path.stem)
         if fast:
@@ -187,7 +178,6 @@ class SampleSentDataset(Dataset):
                     tmps = random.sample(l, minimum)
                 for t in tmps:
                     idxs[t] = key
-                #[idxs.add(i) for i in tmps]
 
             with open(path, 'r') as f:
                 for idx, line in enumerate(f):
@@ -233,35 +223,23 @@ class SampleSentDataset(Dataset):
             pos_pair = self.__pos_pair__(sents)
             self.pos_pair.extend(pos_pair)
 
-    def __sample_all__(self, only=False, batch_size=64):
+    def __sample_all__(self, only=False, batch_size=32):
         self.pos_pair = []
         all_sents = set()
         input_ent_idxs = []
         input_tokens = []
         input_tags = []
         for fn in tqdm(self.files):
-            sents = self.__load__(fn, 1000, 50, True, False, load_all=True)
+            sents = self.__load__(fn, 1000, 50, True, only, load_all=True)
             tokens = [' '.join(s['tokens']) for s in sents]
             for s, t in zip(sents, tokens):
                 t_hash = hash(t)
                 if t_hash not in all_sents:
-                    if only:
-                        orig_entities = s['entities'].copy()
-                        for e in orig_entities:
-                            s['entities'] = [e]
-                            ent, token, tag = self.__preprocess__(s)
-                            if not ent:
-                                continue
-                            input_ent_idxs.append(ent)
-                            input_tokens.append(token)
-                            input_tags.append(tag)
-                            all_sents.add(t_hash)
-                    else:
-                        ent, token, tag = self.__preprocess__(s)
-                        input_ent_idxs.append(ent)
-                        input_tokens.append(token)
-                        input_tags.append(tag)
-                        all_sents.add(t_hash)
+                    ent, token, tag = self.__preprocess__(s)
+                    input_ent_idxs.append(ent)
+                    input_tokens.append(token)
+                    input_tags.append(tag)
+                    all_sents.add(t_hash)
 
                     if len(input_tokens) > batch_size:
                         yield input_ent_idxs, input_tokens, input_tags
