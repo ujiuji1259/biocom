@@ -10,6 +10,10 @@ Please place these file into ./dataset folder.
 
 Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out in the dataset.
 
+### Corpus
+You need to construct the corpus, a set of entity-linked sentences, since the corpus is too large to distribute.
+Please see ./corpus/README.md and construct the corpus used in training and inference.
+
 
 ## Training
 
