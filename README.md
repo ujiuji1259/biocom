@@ -16,8 +16,8 @@ Please follow the instruction [here](https://github.com/facebookresearch/faiss) 
 
 ## Resource
 ### Dataset
-Dataset used in our paper can be downloaded [here](http://aoi.naist.jp/biocom/) (NCBI disease corpus, BC5CDR, MedMentions).
-Please place these file into ./dataset folder to evaluate our model.
+You can download the datasets used in our paper [here](http://aoi.naist.jp/biocom/) (NCBI disease corpus, BC5CDR, MedMentions).
+Please move these file to `./dataset` folder to evaluate our model.
 
 Note that mentions whose concept is not in `MeSH` or `OMIM` are filtered out in the dataset.
 
