@@ -14,9 +14,10 @@ Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out i
 You need to construct the corpus, a set of entity-linked sentences, since the corpus is too large to distribute.
 Please see ./corpus/README.md and construct the corpus used in training and inference.
 
+### Trained model
+You can download [trained model](http://aoi.naist.jp/biocom/sent_50_down_half.model) used in our experiments.
 
 ## Training
-
 ```
 python train.py \
   --concept_map corpus/concept_map.jsonl \
