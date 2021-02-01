@@ -16,47 +16,64 @@ Please follow the instruction [here](https://github.com/facebookresearch/faiss) 
 
 ## Resource
 ### Dataset
-You can download the [three dataset](http://aoi.naist.jp/biocom/) used in our experiments (NCBI disease corpus, BC5CDR, MedMentions).
-These datasets is `.jsonl` format.
-Please place these file into ./dataset folder.
+Dataset used in our paper can be downloaded [here](http://aoi.naist.jp/biocom/) (NCBI disease corpus, BC5CDR, MedMentions).
+Please place these file into ./dataset folder to evaluate our model.
 
 Note that mentions whose concept is not in ``MeSH" or ``OMIM" are filtered out in the dataset.
 
 ### Corpus
-You need to construct the corpus, a set of entity-linked sentences, since the corpus is too large to distribute.
-Please see ./corpus/README.md and construct the corpus used in training and inference.
+The corpus, a set of entity-linked sentences, is too large to distribute, so please construct the corpus on your own.
+Please see ./corpus/README.md and save the corpus in any directory.
 
-### Trained model
-You can download [trained model](http://aoi.naist.jp/biocom/sent_50_down_half.model) used in our experiments.
 
 ## Training
+The following example trains our model.
+Please construct the corpus before training (see ./corpus/README.md).
 ```
+MODEL=./biocom.model
+INPUT_DIR=./corpus/pubmed_down_half
+
 python train.py \
   --concept_map corpus/concept_map.jsonl \
-  --input_dir (corpus directory that are built. Please see ./corpus/README.md) \
+  --input_dir ${INPUT_DIR} \
   --learning_rate 1e-5 \
   --batch_size 16 \
-  --model_path (path to save model)
+  --model_path ${MODEL}
 ```
 
 
 ## Precompute the embeddings
-You have to compute and save the embeddings of all the entity representations in the corpus.
+You can compute and save the embeddings of all the entity representations in the corpus by following example.
 ```
+MODEL=./biocom.model
+INPUT_DIR=./corpus/pubmed_down_half
+OUTPUT_DIR=./corpus/precomputed_embeddings
+
 python precompute_embeddings.py \
+  --model_path ${MODEL} \
   --dictionary_path corpus/disease_down_half.tsv \
   --concept_map corpus/concept_map.jsonl \
-  --input_dir (corpus directory that are built. Please see ./corpus/README.md) \
-  --output_dir (save directory for entity representations)
+  --input_dir ${INPUT_DIR} \
+  --output_dir ${OUTPUT_DIR}
 ```
 
 ## Evaluation
+The following example evaluates our model.
+If you want to use trained model, you can download [trained model](http://aoi.naist.jp/biocom/sent_50_down_half.model) used in our experiments.
+
+Specifically, `shard_bsz` means that we use the specified number of `.npy` file for normalization at the same time.
+We iteratively retrieve the nearest neighbors and update them.
+If you don't have enough memory space, you can set it to small number (e.g., 5)
 ```
+MODEL=./biocom.model
+EMBEDDING_DIR=./corpus/precomputed_embeddings
+OUTPUT_DIR=./output
+
 python evaluate.py \
   --concept_map corpus/concept_map.jsonl \
-  --embedding_dir (directory of entity representations saved above) \
-  --dataset_dir (dataset directory. Please see ./dataset/README.md) \
-  --output_dir (Directory to save prediction samples for each dataset) \
-  --model_path (model path used for inference) \
-  --shard_bsz 10 # This means 10 embedding .npy (1.5G / file) at the same time.
+  --embedding_dir ${EMBEDDING_DIR} \
+  --dataset_dir dataset \
+  --output_dir ${OUTPUT_DIR} \
+  --model_path ${MODEL} \
+  --shard_bsz 10
 ```
