@@ -1,5 +1,6 @@
 
-# Construction of the corpus (a set of the entity-linked sentences)
+# Constructing the corpus
+Construction of the corpus, a set of entity-linked sentences, from PubMed abstracts.
 
 ## Download PubMed data
 First, download all the articles from [National Library of Medicine](https://www.nlm.nih.gov/databases/download/pubmed_medline.html)
