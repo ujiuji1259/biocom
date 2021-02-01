@@ -18,7 +18,7 @@ python preprocess.py \
   --pmid_path test_pmids.txt
 ```
 
-## Link the entity mentions
+## Entity Linking
 Third, link the entities in the sentences to the corresponding concepts by dictioanry matching.
 Note that output directory needs to have at least 35G memory space.
 
