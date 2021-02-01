@@ -24,6 +24,9 @@ Note that the format of each dataset is different from the original data, and me
 The corpus, a set of entity-linked sentences, is too large to distribute, so please construct the corpus on your own.
 Please see `./corpus/README.md` and save the corpus in any directory.
 
+### Dictionary
+The dictionary used in our paper (half of the synonyms in [MEDIC](http://ctdbase.org/downloads/)) is placed in `./corpus/disease_down_half.tsv`.
+This was obtained by randomly sampling half of the synonyms for each concept.
 
 ## Training
 The following example trains our model.
