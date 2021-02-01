@@ -12,7 +12,7 @@ transformers==2.11.0
 pytorch-metric-learning==0.9.89
 faiss==1.6.3
 ```
-Please follow the instruction [here](https://github.com/facebookresearch/faiss) to install faiss if you do not use conda.
+Please follow the instruction [here](https://github.com/facebookresearch/faiss) to install faiss.
 
 ## Resource
 ### Dataset
