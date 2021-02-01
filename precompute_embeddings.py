@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument('--concept_map', required=True, help='File path of concept mapping')
     parser.add_argument('--input_dir', required=True, help='Input directory path')
     parser.add_argument('--output_dir', required=True, help='Output directory. Note that this directory needs at least 35G memory space')
+    parser.add_argument('--model_path', required=True, help='model save path')
 
     args = parser.parse_args()
 
@@ -118,6 +119,7 @@ if __name__ == "__main__":
     with open(args.dictioanry_path, 'r') as f:
         disease_list = [json.loads(l)[0] for l in f.read().split('\n') if l != '']
 
+    model.load_state_dict(torch.load(args.model_path))
     train_dataset = SampleSentDataset(args.input_dir, tokenizer, from_jsonl=True, concept_map=concept_map, disease_list=disease_list)
     ite_data = train_dataset.__sample_all__(only=False)
     save_all_embed(model, ite_data, args.output_dir)
