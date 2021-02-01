@@ -1,3 +1,4 @@
+import argparse
 import dartsclone
 import json
 import linecache
@@ -11,10 +12,20 @@ word_tokenize = WordPunctTokenizer().tokenize
 
 from nltk.corpus import stopwords
 
-MAX_ROW = 112129518
-DICT_FILE = "/home/is/ujiie/simBERT/dataset/disease_UMLS_only.tsv"
-INPUT_FILE = '/data1/ujiie/pubmed/baseline.txt'
-BASE_DIR = Path('/data1/ujiie/pubmed/pubmed_CTD_only')
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Construct the entity-linked sentences for biocom')
+
+    parser.add_argument('--dictionary_path', required=True, help='Dictionary path')
+    parser.add_argument('--input_path', required=True, help='Input file path')
+    parser.add_argument('--output_dir', required=True, help='Output directory. Note that this directory needs at least 35G memory space')
+    parser.add_argument('--max_row', type=int, help='The number of the row of the input file')
+
+    args = parser.parse_args()
+
+    return args
+
 
 def load_entities(path):
     entities = []
@@ -36,14 +47,6 @@ def create_darts(entities, path):
     values = [i for i, e in enumerate(entities)]
 
     darts.build(entities, values=values)
-
-    darts.save(path)
-
-
-def load_darts(path):
-    darts = dartsclone.DoubleArray()
-    darts.clear()
-    darts.open(path)
 
     return darts
 
@@ -106,37 +109,36 @@ def search_match(text, darts):
 
 
 if __name__ == '__main__':
+    args = parse_args()
+    MAX_ROW = args.max_row if args.max_ros else 112129518 
+    BASE_DIR = Path(args.output_dir)
+
     sw = stopwords.words("english")
     sw = set([s.lower() for s in sw])
 
-    entity_list = load_entities(DICT_FILE)
-    create_darts(entity_list, 'entities.dic')
-    darts = load_darts('entities.dic')
+    entity_list = load_entities(args.dictionary_path)
+    darts = create_darts(entity_list, args.trie_path)
 
     tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
 
     cnt = 0
     bar = tqdm(total = MAX_ROW)
-    with open(OUTPUT_IDX_FILE, 'w') as f:
-        try:
-            cnt = 0
-            with open(INPUT_FILE, 'r') as fin:
-                bar.set_description('Progress rate')
-                for line in fin:
-                    line = line.rstrip()
-                    sents = sent_tokenize(line)
-                    for s in sents:
-                        entities, concepts = search_match(s, darts)
-                        if not entities['entities']:
-                            continue
-                        for concept in concepts:
-                            with open(str(BASE_DIR / (concept + '.jsonl')), 'a') as g:
-                                g.write(json.dumps(entities, ensure_ascii=False) + '\n')
+    cnt = 0
+    with open(args.input_path, 'r') as fin:
+        bar.set_description('Progress rate')
+        for line in fin:
+            line = line.rstrip()
+            sents = sent_tokenize(line)
+            for s in sents:
+                entities, concepts = search_match(s, darts)
+                if not entities['entities']:
+                    continue
+                for concept in concepts:
+                    with open(str(BASE_DIR / (concept + '.jsonl')), 'a') as g:
+                        g.write(json.dumps(entities, ensure_ascii=False) + '\n')
 
-                    f.write(str(cnt)+'\n')
-                    cnt += 1
+            f.write(str(cnt)+'\n')
+            cnt += 1
 
-                    bar.update(1)
-        except KeyboardInterrupt:
-            print('interrupt')
+            bar.update(1)
 
