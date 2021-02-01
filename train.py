@@ -1,8 +1,5 @@
 import argparse
 import json
-import os
-import pdb
-from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -15,11 +12,9 @@ from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
 from torch.nn.functional import normalize
-import mlflow
-from torchsummary import summary
 
-from data import EntityDataset, load_concept_vocab, my_collate_fn, SentTrainDataset, SentDataset, my_collate_fn_for_sent, SentEntityDataset, SampleSentDataset
-from model import EntityBERT, load_bert, FaissIndexer, filter_pairs
+from data import load_concept_vocab, SentDataset, my_collate_fn_for_sent
+from model import EntityBERT, FaissIndexer
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -63,8 +58,6 @@ def train(model, dataset, batch_size, ctoi, lr):
         hard_pairs = miner(embeddings, labels)
         hard_pairs = filter_pairs(hard_pairs)
         loss = loss_func(embeddings, labels, hard_pairs)
-
-        mlflow.log_metric("training loss", loss.item(), step=steps)
 
         all_loss += loss.item()
         loss.backward()

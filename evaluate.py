@@ -1,7 +1,5 @@
 import argparse
 import json
-import os
-import pdb
 from collections import Counter
 from pathlib import Path
 
@@ -10,16 +8,12 @@ import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset
 from torch.nn.utils.rnn import pad_sequence
-from pytorch_metric_learning import miners, losses
-from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
 from torch.nn.functional import normalize
-import mlflow
-from torchsummary import summary
 
-from data import EntityDataset, load_concept_vocab, my_collate_fn, SentTrainDataset, SentDataset, my_collate_fn_for_sent, SentEntityDataset, SampleSentDataset
-from model import EntityBERT, load_bert, FaissIndexer, filter_pairs
+from data import SentTrainDataset, SentDataset, my_collate_fn_for_sent
+from model import EntityBERT, FaissIndexer
 
 
 def parse_args():

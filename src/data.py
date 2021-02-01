@@ -6,8 +6,7 @@ from collections import defaultdict
 
 import torch
 from tqdm import tqdm
-from torch.utils.data import DataLoader, Dataset
-from transformers import AutoTokenizer, AutoModel
+from torch.utils.data import Dataset
 
 def load_concept_vocab(path):
     itoc = []
@@ -263,25 +262,6 @@ class SentDataset(Dataset):
         return len(self.pos_pair)
 
 
-def my_collate_fn(batch):
-    tokens, tags = list(zip(*batch))
-    tokens = [t for token in tokens for t in token]
-    tags = [t for tag in tags for t in tag]
-    lengths = [len(token) for token in tokens]
-
-    return tokens, tags, lengths
-
-
-def my_collate_fn_sep(batch):
-    tokens, tags = list(zip(*batch))
-    anc_tokens = [token[0] for token in tokens]
-    anc_tags = [tag[0] for tag in tags]
-    pos_tokens = [token[1] for token in tokens if len(token) > 1]
-    pos_tags = [tag[1] for tag in tags if len(tag) > 1]
-
-    return anc_tokens, anc_tags, pos_tokens, pos_tags
-
-
 def my_collate_fn_for_sent(batch):
     ent_idxs, tokens, tags = list(zip(*batch))
     tokens = [t for token in tokens for t in token]
@@ -289,18 +269,4 @@ def my_collate_fn_for_sent(batch):
     ent_idxs = [e for ent in ent_idxs for e in ent]
 
     return ent_idxs, tokens, tags
-
-
-def my_collate_fn_for_sent_sep(batch):
-    ent_idxs, tokens, tags = list(zip(*batch))
-    anc_tokens = [token[0] for token in tokens]
-    anc_tags = [tag[0] for tag in tags]
-    anc_ent_idxs = [ent[0] for ent in ent_idxs]
-
-    pos_tokens = [token[1] for token in tokens if len(token) > 1]
-    pos_tags = [tag[1] for tag in tags if len(tag) > 1]
-    pos_ent_idxs = [ent[1] for ent in ent_idxs if len(ent) > 1]
-
-    return anc_ent_idxs, anc_tokens, anc_tags, pos_ent_idxs, pos_tokens, pos_tags
-
 
