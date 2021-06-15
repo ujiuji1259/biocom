@@ -71,6 +71,7 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
     tokenizer.add_special_tokens({'additional_special_tokens': ['[ENT]', '[/ENT]']})
     bert = AutoModel.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext")
+    bert.resize_token_embeddings(len(tokenizer))
     model = EntityBERT(bert).to(device)
 
     with open(args.concept_map, 'r') as f:
