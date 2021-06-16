@@ -1,5 +1,18 @@
 # BioCoM
+[![arXiv](https://img.shields.io/badge/arXiv-2106.07583-green)](https://arxiv.org/abs/2106.07583)
+
 We present BioCoM, a contrastive learning framework for context-aware medical entity normalization. 
+
+```
+@misc{ujiie2021biomedical,
+      title={Biomedical Entity Linking with Contrastive Context Matching}, 
+      author={Shogo Ujiie and Hayate Iso and Eiji Aramaki},
+      year={2021},
+      eprint={2106.07583},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+```
 
 ## Requirments
 ```
