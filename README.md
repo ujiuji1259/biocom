@@ -43,7 +43,7 @@ This was obtained by randomly sampling half of the synonyms for each concept.
 ## Training
 The following example trains our model.
 Please construct the corpus before training (see `./corpus/README.md`).
-```
+```bash
 MODEL=./biocom.model
 INPUT_DIR=./corpus/pubmed_down_half
 
@@ -58,7 +58,7 @@ python train.py \
 
 ## Precomputing the embeddings
 The following example computes and saves the embeddings of all the entity in the corpus.
-```
+```bash
 MODEL=./biocom.model
 INPUT_DIR=./corpus/pubmed_down_half
 OUTPUT_DIR=./corpus/precomputed_embeddings
@@ -78,7 +78,7 @@ If you want to use trained model, you can download [trained model](http://aoi.na
 Specifically, `shard_bsz` means that we use the specified number of `.npy` file for normalization at the same time.
 We iteratively retrieve the nearest neighbors and update them.
 If you don't have enough memory space, you can set it to smaller number (e.g., 5)
-```
+```bash
 MODEL=./biocom.model
 EMBEDDING_DIR=./corpus/precomputed_embeddings
 OUTPUT_DIR=./output
